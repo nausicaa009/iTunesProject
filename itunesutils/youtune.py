@@ -1,5 +1,8 @@
+import os
 import codecs
 import itertools
+import shutil
+from pathlib import Path
 from os.path import relpath
 
 class YouTune:
@@ -24,10 +27,31 @@ class YouTune:
             return itertools.islice(it, heads)
    
     def find_missing_songs(self):
-        lookups = [ relpath(song, self.target_path_prefix) for song in self._get_music_iter(self.target_music_file, 2000) ]
+        lookups = [ relpath(song, self.target_path_prefix) for song in self._get_music_iter(self.target_music_file, 200) ]
         rel_path = lambda song_path: relpath(song_path, self.source_path_prefix)
-        return [song for song in map(rel_path, self._get_music_iter(self.source_music_file, 100)) if song not in lookups]
-                    
+        return [Path(song).as_posix() for song in map(rel_path, self._get_music_iter(self.source_music_file, 100)) if song not in lookups]
+
+    def copy_missing_songs(self, mising_songs, dryRun=True, maxCount=-1):
+        count = 0
+        for song_path in mising_songs:
+            try:
+                source_path = "%s%s" % (self.source_path_prefix, song_path)
+                target_path = "%s%s" % (self.target_path_prefix, song_path)
+                if os.path.isdir(target_path):
+                    if not dryRun:
+                        Path(target_path).mkdir(parents=True, exist_ok=True)
+                    print('Create a directory %s' % target_path)
+                else:
+                    if not dryRun:
+                        shutil.copyfile(source_path, target_path) 
+                    print('cp %s %s' % (source_path, target_path))
+            except:
+                print('ERROR - Unable to process %s' % target_path)
+            count += 1
+            if count == maxCount:
+                break
+        
+        
 class MusicSequence:
     ''' sequence implementation to load songs from a file'''
     def __init__(self, file_name):
@@ -104,5 +128,7 @@ if __name__ == '__main__':
                  '../destMusic.txt', '/Volumes/Public/Shared Music/iTunes Media/Music/')
     missing_songs = yt.find_missing_songs()
     print('Total missing songs=%d' % len(missing_songs))
+    
+    yt.copy_missing_songs(missing_songs)
     
     print('Done.')
