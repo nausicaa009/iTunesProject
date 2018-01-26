@@ -1,4 +1,5 @@
 import os
+import logging
 import codecs
 import itertools
 import shutil
@@ -10,11 +11,13 @@ class YouTune:
     def __init__(self, source_music_file=None,
                  source_path_prefix='',
                  target_music_file=None,
-                 target_path_prefix=''):
+                 target_path_prefix='',
+                 logger=None):
         self.source_music_file = source_music_file
         self.source_path_prefix = source_path_prefix
         self.target_music_file = target_music_file
         self.target_path_prefix = target_path_prefix
+        self.logger = logger or logging.getLogger(__name__)
     
     def version(self):
         return "v0.01"
@@ -32,22 +35,20 @@ class YouTune:
         return [Path(song).as_posix() for song in map(rel_path, self._get_music_iter(self.source_music_file, 100)) if song not in lookups]
 
     def copy_missing_songs(self, mising_songs, dryRun=True, maxCount=-1):
-        count = 0
-        for song_path in mising_songs:
+        for count, song_path in enumerate(mising_songs):
+            source_path = "%s%s" % (self.source_path_prefix, song_path)
+            target_path = "%s%s" % (self.target_path_prefix, song_path)
             try:
-                source_path = "%s%s" % (self.source_path_prefix, song_path)
-                target_path = "%s%s" % (self.target_path_prefix, song_path)
                 if os.path.isdir(target_path):
+                    self.logger.info('Create a directory "%s"' % target_path)
                     if not dryRun:
                         Path(target_path).mkdir(parents=True, exist_ok=True)
-                    print('Create a directory %s' % target_path)
                 else:
+                    self.logger.info('cp "%s" "%s"' % (source_path, target_path))
                     if not dryRun:
                         shutil.copyfile(source_path, target_path) 
-                    print('cp %s %s' % (source_path, target_path))
-            except:
-                print('ERROR - Unable to process %s' % target_path)
-            count += 1
+            except Exception:
+                self.logger.error('ERROR - Unable to process %s' % target_path)
             if count == maxCount:
                 break
     
@@ -112,9 +113,17 @@ class MusicGenerator2:
 '''
 
 if __name__ == '__main__':
-    yt = YouTune()
+    logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+    logger = logging.getLogger('YouTuneLogger')
+    
+    handler = logging.FileHandler('YouTune.log', encoding='utf-8')
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(handler)
+    
+    yt = YouTune(logger=logger)
     yt.setup()
     missing_songs = yt.find_missing_songs()
-    print('Total missing songs=%d' % len(missing_songs))
-    #yt.copy_missing_songs(missing_songs)
-    print('Done.')
+    logger.info('Total missing songs=%d' % len(missing_songs))
+    yt.copy_missing_songs(missing_songs)
+    logger.info('Done.')

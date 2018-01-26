@@ -1,9 +1,7 @@
 import unittest
 import youtune
-from pathlib import Path
 import itertools
-import warnings
-
+#import warnings
 #warnings.simplefilter("ignore", ResourceWarning)
 
 class TestYouTube(unittest.TestCase):
@@ -12,8 +10,10 @@ class TestYouTube(unittest.TestCase):
         pass
     
     def test_find_missing_songs(self):
-        yt = youtune.YouTune()
-        yt.setup()
+        yt = youtune.YouTune('./sourceMusic.txt',
+                             '/Users/junesung/Music/iTunes/iTunes Media/Music/',
+                             './destMusic.txt',
+                             '/Volumes/Public/Shared Music/iTunes Media/Music/')
         missing_songs = yt.find_missing_songs()
         print(len(missing_songs))
         self.assertTrue(len(missing_songs) > 0)
