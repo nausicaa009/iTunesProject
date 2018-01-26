@@ -20,7 +20,7 @@ class YouTune:
         return "v0.01"
     
     def _get_music_iter(self, file, heads=None):
-        it = MusicGenerator2(file)
+        it = MusicGenerator(file)
         if heads == None:
             return it
         else:
@@ -52,9 +52,9 @@ class YouTune:
                 break
     
     def setup(self):
-        self.source_music_file = Path('./sourceMusic.txt')
+        self.source_music_file = './sourceMusic.txt'
         self.source_path_prefix = '/Users/junesung/Music/iTunes/iTunes Media/Music/'
-        self.target_music_file = Path('./destMusic.txt')
+        self.target_music_file = './destMusic.txt'
         self.target_path_prefix = '/Volumes/Public/Shared Music/iTunes Media/Music/'
         
 class MusicSequence:
@@ -100,16 +100,16 @@ class MusicGenerator:
             for line in fd:
                 yield line.strip()
 
+''' file is not closed after generator runs
 class MusicGenerator2:
     ''''''
-    def __init__(self, file_path):
-        self.file_path = file_path
+    def __init__(self, file_name):
+        self.file_name = file_name
         
     def __iter__(self):
-        full_path = os.path.abspath(self.file_path)
-        fd = codecs.open(full_path, 'r', 'utf-8')
+        fd = codecs.open(self.file_name, 'r', 'utf-8')
         return (line.strip() for line in fd)
-
+'''
 
 if __name__ == '__main__':
     yt = YouTune()

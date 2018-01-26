@@ -4,7 +4,7 @@ from pathlib import Path
 import itertools
 import warnings
 
-warnings.simplefilter("ignore", ResourceWarning)
+#warnings.simplefilter("ignore", ResourceWarning)
 
 class TestYouTube(unittest.TestCase):
     
@@ -30,14 +30,15 @@ class TestYouTube(unittest.TestCase):
                 print('%s\n' % song)
         self.assertTrue(True)
         
-    def test_MusicGenerator2(self):
-        songs = youtune.MusicGenerator2(Path('./sourceMusic.txt'))
+    def test_MusicGenerator(self):
+        songs = youtune.MusicGenerator('./sourceMusic.txt')
         gen = itertools.takewhile(lambda t: t[0] < 5, enumerate(songs))
-        for i, s in gen:
+        for _, s in gen:
             print(s)
         print(list(itertools.islice(songs, 5)))
         self.assertTrue(True)
 
         
 if __name__ == '__main__':
-    unittest.main(warnings='ignore')
+    unittest.main()
+    #unittest.main(warnings='ignore')
