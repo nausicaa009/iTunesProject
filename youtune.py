@@ -47,8 +47,8 @@ class YouTune:
                     self.logger.info('cp "%s" "%s"' % (source_path, target_path))
                     if not dryRun:
                         shutil.copyfile(source_path, target_path) 
-            except Exception:
-                self.logger.error('ERROR - Unable to process %s' % target_path)
+            except Exception as e:
+                self.logger.error('ERROR - Unable to process %s - %s' % (target_path, e))
             if count == maxCount:
                 break
     
